@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String        @id @default(cuid())
+  name                String
+  customerId          String        @unique
+  usualDevice         String
+  usualLocation       String
+  usualLoginHours     String
+  baselineTypingSpeed Float
+  baselineMouseSpeed  Float
+  createdAt           DateTime      @default(now())
+  sessions            Session[]
+  transactions        Transaction[]
+}
+
+model Session {
+  id             String        @id @default(cuid())
+  userId         String
+  channel        String
+  device         String
+  location       String
+  ipAddress      String
+  loginTime      DateTime
+  typingSpeed    Float
+  backspaceRate  Float
+  mouseVelocity  Float
+  clickPrecision Float
+  failedAttempts Int
+  riskScore      Int
+  riskLevel      String
+  decision       String
+  explanationJson String
+  createdAt      DateTime      @default(now())
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]
+  riskEvents     RiskEvent[]
+}
+
+model Transaction {
+  id               String   @id @default(cuid())
+  userId           String
+  sessionId        String
+  amount           Float
+  beneficiary      String
+  isNewBeneficiary Boolean
+  channel          String
+  riskScore        Int
+  status           String
+  createdAt        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session          Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model RiskEvent {
+  id        String   @id @default(cuid())
+  sessionId String
+  eventType String
+  severity  String
+  reason    String
+  value     String
+  createdAt DateTime @default(now())
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
